@@ -1,0 +1,45 @@
+plugins {
+    id 'java'
+    id "com.palantir.docker" version "0.22.1"
+    id "com.palantir.docker-run" version "0.22.1"
+}
+
+group 'org.example'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+jar {
+    manifest {
+        attributes "Main-Class": "ru.mirea.practice_9.Main"
+    }
+}
+
+task prepareForDocker(type: Copy) {
+    from("$buildDir/libs/${project.name}-${project.version}.jar")
+    into("src/main/resources/")
+    rename "${project.name}-${project.version}.jar", "${project.name}.jar"
+}
+
+docker {
+    name "${project.name}:${project.version}"
+    files "src/main/resources/${project.name}.jar"
+    dockerfile file("src/main/resources/Dockerfile")
+}
+
+dockerRun {
+    name "${project.name}"
+    image "${project.name}:${project.version}"
+    clean true
+}
